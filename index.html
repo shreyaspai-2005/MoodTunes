@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodTunes: Your Mood-Based Music Playlist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 1rem;
+            color: #334155;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        button {
+            padding: 14px 28px;
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+        }
+        button:hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .result-box {
+            background-color: #e0e7ff;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: left;
+            border: 1px solid #a5b4fc;
+            min-height: 100px;
+            box-sizing: border-box;
+            border: 3px solid red !important;
+            color: black !important;
+        }
+        .result-box p {
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+            color: #334155;
+        }
+        .result-box strong {
+            color: #4338ca;
+        }
+        .loading-indicator {
+            display: none;
+            margin-top: 16px;
+            font-weight: 500;
+            color: #6366f1;
+        }
+        .error-message {
+            display: none;
+            color: #ef4444;
+            font-weight: 500;
+            margin-top: 16px;
+        }
+        .spotify-link {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+            color: #1DB954;
+            text-decoration: underline;
+        }
+        .spotify-link:hover {
+            color: #1ed760;
+        }
+        /* New styles for image and title alignment */
+        .title-container {
+            display: flex; /* Use flexbox to align image and text */
+            align-items: center; /* Vertically center the items */
+            justify-content: center; /* Horizontally center the content */
+            gap: 10px; /* Space between the image and the title */
+        }
+        .title-container img {
+            height: 50px; /* Adjust as needed */
+            width: 50px; /* Adjust as needed */
+            object-fit: contain; /* Ensures the whole image is visible without cropping */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-container">
+            <img src="WhatsApp Image 2025-06-11 at 23.01.26_1f778118.jpg" alt="MoodTunes Logo">
+            <h1 class="text-3xl font-bold text-gray-800">MoodTunes</h1>
+        </div>
+        <p class="text-lg text-gray-600">Discover music tailored to your feelings from your journal entries.</p>
+        <p>* if there is no output, try to refresh the page 😉</p>
+        <div class="journal-input-section">
+            <label for="journalEntry" class="block text-left text-gray-700 text-base font-medium mb-2">Write your journal entry here:</label>
+            <textarea id="journalEntry" placeholder="Today, I felt..."></textarea>
+        </div>
+
+        <button id="analyzeButton">Get My MoodTunes</button>
+
+        <div id="loadingIndicator" class="loading-indicator">Analyzing your mood...</div>
+        <div id="errorMessage" class="error-message"></div>
+
+        <div id="results" class="result-box" style="display: none;">
+            <p><strong>Detected Mood:</strong> <span id="detectedMood"></span></p>
+            <p><strong>Recommended Music:</strong> <span id="recommendedMusic"></span></p>
+            <p><strong>Listen on Spotify:</strong> <a id="spotifyPlaylistLink" class="spotify-link" href="#" target="_blank">View Playlist</a></p>
+        </div>
+    </div>
+
+    <script>
+        console.log('Script is running!');
+
+        const journalEntryTextarea = document.getElementById('journalEntry');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsDiv = document.getElementById('results');
+        const detectedMoodSpan = document.getElementById('detectedMood');
+        const recommendedMusicSpan = document.getElementById('recommendedMusic');
+        const spotifyPlaylistLink = document.getElementById('spotifyPlaylistLink');
+
+        console.log('journalEntryTextarea element:', journalEntryTextarea);
+        console.log('analyzeButton element:', analyzeButton);
+        console.log('resultsDiv element:', resultsDiv);
+        console.log('detectedMoodSpan element:', detectedMoodSpan);
+        console.log('recommendedMusicSpan element:', recommendedMusicSpan);
+        console.log('spotifyPlaylistLink element:', spotifyPlaylistLink);
+
+
+        function showMessage(element, message, isError = false) {
+            element.textContent = message;
+            element.style.display = 'block';
+            element.style.color = isError ? '#ef4444' : '#6366f1';
+        }
+
+        function hideMessage(element) {
+            element.style.display = 'none';
+            element.textContent = '';
+        }
+
+        analyzeButton.addEventListener('click', async () => {
+            console.log('Button clicked!');
+            const journalEntry = journalEntryTextarea.value.trim();
+            console.log('Journal entry value:', journalEntry);
+
+            if (!journalEntry) {
+                showMessage(errorMessage, 'Please write something in your journal entry.', true);
+                hideMessage(resultsDiv);
+                hideMessage(loadingIndicator);
+                console.log('Journal entry is empty. Not proceeding with fetch.');
+                return;
+            }
+
+            hideMessage(errorMessage);
+            hideMessage(loadingIndicator);
+            resultsDiv.style.display = 'none';
+            
+            detectedMoodSpan.textContent = '';
+            recommendedMusicSpan.textContent = '';
+            spotifyPlaylistLink.href = '#';
+            spotifyPlaylistLink.textContent = 'View Playlist';
+            console.log('Cleared previous content.');
+
+            showMessage(loadingIndicator, 'Analyzing your mood...');
+            console.log('Attempting fetch request...');
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/analyze_journal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ journal_entry: journalEntry }),
+                });
+
+                console.log('Fetch request completed. Response object:', response);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Received data:', data);
+
+                if (data && data.detected_mood !== undefined && data.recommended_music !== undefined && data.spotify_playlist_url !== undefined) {
+                    detectedMoodSpan.textContent = data.detected_mood;
+                    recommendedMusicSpan.textContent = data.recommended_music;
+                    spotifyPlaylistLink.href = data.spotify_playlist_url;
+                    spotifyPlaylistLink.textContent = data.spotify_playlist_url !== '#' ? 'View Playlist on Spotify' : 'No specific playlist available';
+
+                    console.log('Detected Mood Span content after setting:', detectedMoodSpan.textContent);
+                    console.log('Recommended Music Span content after setting:', recommendedMusicSpan.textContent);
+                    console.log('Spotify Link HREF after setting:', spotifyPlaylistLink.href);
+                    console.log('Spotify Link Text after setting:', spotifyPlaylistLink.textContent);
+                    console.log('resultsDiv display style before making visible:', resultsDiv.style.display);
+
+                    resultsDiv.style.display = 'block';
+                    console.log('resultsDiv display style after making visible:', resultsDiv.style.display);
+
+                    void resultsDiv.offsetHeight; 
+
+                } else {
+                    throw new Error("Received unexpected data structure from backend. Missing expected fields.");
+                }
+
+            } catch (error) {
+                console.error('Error in fetch or data processing:', error);
+                showMessage(errorMessage, `Failed to get MoodTunes. Please ensure the backend server is running and provides valid data. Details: ${error.message}`, true);
+                resultsDiv.style.display = 'none';
+            } finally {
+                hideMessage(loadingIndicator);
+                console.log('Analysis process finished.');
+            }
+        });
+    </script>
+</body>
+</html>
