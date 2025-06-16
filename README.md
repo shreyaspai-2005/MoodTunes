@@ -1,4 +1,4 @@
-# MoodTunes
+# <img src="https://github.com/user-attachments/assets/a7485d3f-142c-4a31-8eac-69d5e3996bfe" alt="MoodTunes Logo" width="50" height="50" style="align: left;"> MoodTunes
 
 ### Project Overview
 'MoodTunes' is an AI-powered mini-project designed to personalize music recommendations by analyzing a user's real-time emotional state extracted from journal entries. This system innovatively detects underlying moods and curates tailored music playlists, directly linking them to Spotify.
@@ -40,6 +40,12 @@ To set up and run MoodTunes on your local machine, follow these steps:
         * Type a journal entry into the provided text area.
         * Click the "Get My MoodTunes" button.
         * The system will analyze your entry, display the detected mood and recommended music, and provide a clickable link to the corresponding Spotify playlist.
+
+### Demo Video of our Mini Project
+
+
+https://github.com/user-attachments/assets/2e05e4f2-591e-47c3-84b8-86c8c2a318ae
+
 
 ---
 
